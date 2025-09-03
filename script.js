@@ -17,13 +17,17 @@ const clearCartBtn = document.getElementById('clear-cart');
 const loginBtn = document.querySelector('.login-btn');
 
 // Inicializar la aplicación
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', async function () {
     await cargarProductos();
     mostrarProductos();
     actualizarCarrito();
-    
+
     // TODO: Agregar event listeners para los botones
     // PISTA: checkoutBtn necesita un evento 'click' que llame a una función para procesar el pago
+    checkoutBtn.addEventListener('click', procederPago);
+
+
+    checkoutBtn.addEventListener('click', vaciarCarrito);
     // PISTA: clearCartBtn necesita un evento 'click' que llame a mostrarModalVaciarCarrito()
     // PISTA: loginBtn necesita un evento 'click' que llame a mostrarModalLogin()
     // NOTA: Las funciones de modales ya están implementadas al final del archivo
@@ -52,11 +56,11 @@ async function cargarProductos() {
 // Función para mostrar los productos en la página
 function mostrarProductos() {
     productosContainer.innerHTML = '';
-    
+
     productos.forEach(producto => {
         const productoCard = document.createElement('div');
         productoCard.className = 'product-card';
-        
+
         productoCard.innerHTML = `
             <div class="product-image">${crearImagenProducto(producto)}</div>
             <div class="product-info">
@@ -68,41 +72,74 @@ function mostrarProductos() {
                 </button>
             </div>
         `;
-        
+
         productosContainer.appendChild(productoCard);
     });
 }
 
 // TODO: Función para agregar un producto al carrito
+
 function agregarAlCarrito(productoId) {
+    const prueba = 0;
+
+    const pro = productos.find(p => p.id === productoId);
+    console.log(pro);
+    const carritos = carrito.find(n => n.id === productoId);
+
+    if (carritos) {
+        carritos.cantidad++;
+    }
+    else {
+        carrito.push({
+            ...pro, cantidad: 1
+
+        })
+        prueba++
+
+    }
+
+
+
     // PISTA: Necesitas buscar el producto en el array 'productos' usando el productoId
     // PISTA: Verifica si el producto ya existe en el carrito
+
+
+
     // PISTA: Si existe, incrementa la cantidad; si no existe, agrégalo con cantidad 1
     // PISTA: No olvides llamar actualizarCarrito() al final
     // PISTA: Puedes usar mostrarMensaje() para notificar al usuario
+    actualizarCarrito()
 }
 
 // Función para actualizar la visualización del carrito
 function actualizarCarrito() {
+
+    const totalItems = carrito.reduce((total, item) => total + item.cantidad, 0);
+    cartCount.textContent = totalItems;
+
     // TODO: Actualizar contador del carrito en el header
     // PISTA: Calcula el total de items sumando todas las cantidades
     // PISTA: Actualiza el textContent del elemento cartCount
-    
+
     // TODO: Actualizar el total del precio
     actualizarTotal();
-    
+
     // Limpiar contenido anterior
     cartItems.innerHTML = '';
-    
+
     // TODO: Mostrar mensaje de carrito vacío o los productos
+
     // PISTA: Si carrito.length === 0, mostrar emptyCart y ocultar cartContainer
     // PISTA: Si hay productos, hacer lo contrario
-    
+
     if (carrito.length === 0) {
+        cartContainer.style.display = 'none';
+        emptyCart.style.display = 'block';
         // TODO: Implementar lógica para carrito vacío
         return;
     }
-    
+    cartContainer.style.display = 'block';
+    emptyCart.style.display = 'block';
     // TODO: Mostrar items del carrito
     // PISTA: Recorre el array carrito con forEach
     // PISTA: Para cada item, crea un div con clase 'cart-item'
@@ -110,7 +147,7 @@ function actualizarCarrito() {
     carrito.forEach(item => {
         const cartItem = document.createElement('div');
         cartItem.className = 'cart-item';
-        
+
         cartItem.innerHTML = `
             <div class="cart-item-header">
                 <div class="cart-item-image">${crearImagenCarrito(item)}</div>
@@ -130,7 +167,7 @@ function actualizarCarrito() {
                 Total: $${(item.precio * item.cantidad).toFixed(2)}
             </div>
         `;
-        
+
         cartItems.appendChild(cartItem);
     });
 }
@@ -138,7 +175,20 @@ function actualizarCarrito() {
 // TODO: Función para cambiar la cantidad de un producto
 function cambiarCantidad(productoId, cambio) {
     // PISTA: Busca el item en el carrito usando find()
+    const item = carrito.find(n => n.id === productoId);
     // PISTA: Suma el cambio a la cantidad actual
+    if (item) {
+        item.cantidad += cambio
+        if (item.cantidad <= 0) {
+            console.log("ENTRO", item.cantidad)
+            eliminarDelCarrito(item.id)
+        } else {
+
+            actualizarCarrito()
+        }
+    }
+
+
     // PISTA: Si la cantidad queda <= 0, elimina el producto del carrito
     // PISTA: Llama a actualizarCarrito() para refrescar la vista
 }
@@ -152,6 +202,9 @@ function actualizarCantidad(productoId, nuevaCantidad) {
 
 // TODO: Función para eliminar un producto del carrito
 function eliminarDelCarrito(productoId) {
+    const producto = carrito.find(c => c.id === productoId)
+    carrito = carrito.filter(c => c.id !== producto.id)
+    actualizarCarrito()
     // PISTA: Usa filter() para crear un nuevo array sin el producto a eliminar
     // PISTA: Actualiza el array carrito con el resultado del filter
     // PISTA: Llama a actualizarCarrito()
@@ -164,6 +217,7 @@ function actualizarTotal() {
     // PISTA: Actualiza el textContent de totalAmount con el resultado
     const total = 0; // Reemplaza esto con tu cálculo
     totalAmount.textContent = total.toFixed(2);
+
 }
 
 // TODO: Función para proceder al pago (básica)
@@ -239,17 +293,17 @@ function mostrarModal({ icono, titulo, mensaje, textoConfirmar, textoCancel, onC
     // Crear overlay
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
-    
+
     // Crear modal
     const modal = document.createElement('div');
     modal.className = 'modal';
-    
+
     // Preparar botones
-    const botones = textoCancel ? 
+    const botones = textoCancel ?
         `<button class="modal-btn modal-btn-cancel">${textoCancel}</button>
          <button class="modal-btn modal-btn-confirm">${textoConfirmar}</button>` :
         `<button class="modal-btn modal-btn-confirm" style="flex: none; margin: 0 auto;">${textoConfirmar}</button>`;
-    
+
     modal.innerHTML = `
         <div class="modal-header">
             <div class="modal-icon">${icono}</div>
@@ -260,25 +314,25 @@ function mostrarModal({ icono, titulo, mensaje, textoConfirmar, textoCancel, onC
             ${botones}
         </div>
     `;
-    
+
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
-    
+
     // Event listeners
     const btnCancel = modal.querySelector('.modal-btn-cancel');
     const btnConfirm = modal.querySelector('.modal-btn-confirm');
-    
+
     if (btnCancel) {
         btnCancel.addEventListener('click', () => {
             cerrarModal(overlay);
         });
     }
-    
+
     btnConfirm.addEventListener('click', () => {
         if (onConfirmar) onConfirmar();
         cerrarModal(overlay);
     });
-    
+
     // Cerrar al hacer click en el overlay (solo si no es modal de información)
     if (textoCancel) {
         overlay.addEventListener('click', (e) => {
@@ -287,7 +341,7 @@ function mostrarModal({ icono, titulo, mensaje, textoConfirmar, textoCancel, onC
             }
         });
     }
-    
+
     // Cerrar con Escape
     const handleEscape = (e) => {
         if (e.key === 'Escape') {
@@ -326,7 +380,7 @@ function mostrarMensaje(mensaje) {
         font-weight: bold;
         animation: slideIn 0.3s ease;
     `;
-    
+
     // Agregar animación CSS
     if (!document.querySelector('#message-styles')) {
         const style = document.createElement('style');
@@ -345,9 +399,9 @@ function mostrarMensaje(mensaje) {
         `;
         document.head.appendChild(style);
     }
-    
+
     document.body.appendChild(mensajeDiv);
-    
+
     // Eliminar mensaje después de 3 segundos
     setTimeout(() => {
         if (mensajeDiv.parentNode) {
@@ -362,7 +416,7 @@ function mostrarModalVaciarCarrito() {
         mostrarMensaje('El carrito ya está vacío');
         return;
     }
-    
+
     mostrarModal({
         icono: '🗑️',
         titulo: '¿Vaciar carrito?',
