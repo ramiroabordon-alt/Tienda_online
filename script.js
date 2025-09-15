@@ -212,6 +212,7 @@ function eliminarDelCarrito(productoId) {
 
 // Función para actualizar el total del carrito
 function actualizarTotal() {
+    
     // TODO: Calcular el total sumando precio * cantidad de cada item
     // PISTA: Usa reduce() para sumar todos los subtotales
     // PISTA: Actualiza el textContent de totalAmount con el resultado
@@ -428,13 +429,64 @@ function mostrarModalVaciarCarrito() {
 }
 
 // Función para mostrar modal de login (placeholder)
+
+
+// ...
+
+loginBtn.addEventListener('click', mostrarModalLogin);
+
+// ...
+
 function mostrarModalLogin() {
     mostrarModal({
         icono: '👤',
         titulo: 'Iniciar Sesión',
-        mensaje: 'Funcionalidad de login en desarrollo.\n\nPronto podrás:\n• Guardar tu carrito\n• Ver historial de compras\n• Gestionar tus datos\n• Recibir ofertas exclusivas',
+         mensaje: `
+            <form id="login-form" class="login-form">
+                <label for="usuario">Usuario:</label>
+                <input type="email" id="usuario" name="usuario" required>
+                <br>
+                <label for="password">Contraseña:</label>
+                <input type="password" id="password" name="password" required>
+
+                <button type="submit" style="margin-top:10px;">Ingresar</button>
+            </form>
+
+        `,
+        textoConfirmar: '',
+        textoCancel: '',
         textoConfirmar: 'Entendido',
         textoCancel: '',
-        onConfirmar: null
+        onConfirmar: null , 
+
+        form:addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const usuario = document.getElementById("usuario").value;
+    const password = document.getElementById("password").value;
+
+    try {
+        const response = await fetch("https://miapi.com/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ usuario, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            mostrarMensaje("✅ Login exitoso. Bienvenido " + data.usuario);
+            document.querySelector(".modal-overlay").remove(); // cerrar modal
+        } else {
+            mostrarMensaje("❌ Error: " + data.message);
+        }
+    } catch (error) {
+        mostrarMensaje("⚠️ No se pudo conectar a la API");
+        console.error(error);
+    }
+})
+        
     });
 }
